@@ -1,0 +1,47 @@
+# Gitignore for Argonath Wiki Repository
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Build Output
+_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# Node modules (if using any build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary Files
+*.tmp
+*.temp
+*.bak
+*.log
+
+# Generated Documentation
+out/
+dist/
+
+# Local Notes
+notes.md
+TODO.md
+scratch.md
