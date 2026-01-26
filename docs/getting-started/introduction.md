@@ -2,7 +2,7 @@
 
 ## What is Argonath Systems?
 
-Argonath Systems is a comprehensive, modular framework ecosystem designed for creating rich, quest-driven experiences in Hytale. Built on the **Lord of the Tales** architecture principles, it provides a layered, extensible platform for mod developers.
+Argonath Systems is a comprehensive, modular framework ecosystem designed for creating rich, quest-driven experiences in Hytale. Built on the **Argonath Systems** architecture principles, it provides a layered, extensible platform for mod developers.
 
 ## Why Argonath Systems?
 

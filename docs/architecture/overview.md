@@ -2,7 +2,7 @@
 
 ## Architectural Principles
 
-Argonath Systems is built on **Lord of the Tales** architecture, emphasizing:
+Argonath Systems is built on **Argonath Systems** architecture, emphasizing:
 
 1. **Layered Design** - Clear separation between platform, adapters, frameworks, and mods
 2. **Dependency Inversion** - Depend on abstractions, not implementations
