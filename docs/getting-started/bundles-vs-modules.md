@@ -439,4 +439,4 @@ implementation 'com.hytale.argonath:framework-quest:1.1.0'  // Newer version
 
 ---
 
-**Still confused?** Ask in [Discussions](https://github.com/YOUR_USERNAME/Argonath-Systems/discussions)!
+**Still confused?** Ask in [Discussions](https://github.com/Argonath-Systems/Argonath-Systems/discussions)!

@@ -43,7 +43,7 @@ sourceCompatibility = JavaVersion.VERSION_17
 repositories {
     mavenCentral()
     maven {
-        url = 'https://maven.pkg.github.com/YOUR_USERNAME/Argonath-Systems'
+        url = 'https://maven.pkg.github.com/Argonath-Systems/Argonath-Systems'
     }
 }
 
@@ -422,7 +422,7 @@ Now that you've created your first quest, explore:
 ## Complete Example Code
 
 Full working example available at:
-**[examples/first-quest](https://github.com/YOUR_USERNAME/Argonath-Systems/tree/main/examples/first-quest)**
+**[examples/first-quest](https://github.com/Argonath-Systems/Argonath-Systems/tree/main/examples/first-quest)**
 
 ---
 

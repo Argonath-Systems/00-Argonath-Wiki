@@ -23,7 +23,7 @@ Bundles provide pre-configured collections of modules for specific use cases.
 #### Quest Bundle
 Includes everything needed for quest development:
 
-1. Download the latest `bundle-quest.jar` from [Releases](https://github.com/YOUR_USERNAME/Argonath-Systems/releases)
+1. Download the latest `bundle-quest.jar` from [Releases](https://github.com/Argonath-Systems/Argonath-Systems/releases)
 2. Place in your Hytale `mods/` folder
 3. Restart Hytale
 
@@ -60,7 +60,7 @@ Add to your `build.gradle`:
 ```gradle
 repositories {
     maven {
-        url = 'https://maven.pkg.github.com/YOUR_USERNAME/Argonath-Systems'
+        url = 'https://maven.pkg.github.com/Argonath-Systems/Argonath-Systems'
         credentials {
             username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
             password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
@@ -110,7 +110,7 @@ For contributors or custom modifications:
 #### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Argonath-Systems.git
+git clone https://github.com/Argonath-Systems/Argonath-Systems.git
 cd Argonath-Systems
 ```
 
@@ -252,9 +252,9 @@ Look for successful initialization in `logs/latest.log`:
 
 ### Getting Help
 
-- **GitHub Issues**: [Report bugs](https://github.com/YOUR_USERNAME/Argonath-Systems/issues)
+- **GitHub Issues**: [Report bugs](https://github.com/Argonath-Systems/Argonath-Systems/issues)
 - **Discord**: Join our community server
-- **Discussions**: [Ask questions](https://github.com/YOUR_USERNAME/Argonath-Systems/discussions)
+- **Discussions**: [Ask questions](https://github.com/Argonath-Systems/Argonath-Systems/discussions)
 
 ## Next Steps
 
