@@ -955,85 +955,146 @@ QuestOffers:
 
 ### Quest Framework Integration
 
-Generate **wealth-contextual quests** from NPCs:
+Generate **wealth-contextual quests** from NPCs using the generic `QuestGenerator`:
 
 ```java
-import com.argonathsystems.framework.quest.Quest;
-import com.argonathsystems.framework.quest.QuestGenerator;
+import com.lordofthetales.framework.quest.model.QuestDefinition;
+import com.lordofthetales.framework.quest.model.QuestReward;
+import com.lordofthetales.framework.quest.model.QuestObjectiveReference;
+import com.lordofthetales.framework.quest.service.QuestGenerator;
 
+/**
+ * Example: Mod-level wealth-based quest generation.
+ * 
+ * The QuestGenerator framework provides generic building blocks.
+ * Domain-specific logic (wealth tiers, NPC types) lives in your mod.
+ */
 public class WealthBasedQuestGenerator {
-    public Quest generateSmithQuest(NPC smith, int wealthLevel) {
-        QuestGenerator generator = new QuestGenerator();
-        
-        if (wealthLevel <= 1) {
-            // Poor smith: Resource gathering quests
-            return generator.createQuest()
-                .setId("poor_smith_iron_" + smith.getId())
-                .setName("Iron for the Forge")
-                .setGiver(smith)
-                .setDescription(smith.getName() + " needs raw materials to continue working.")
-                .addObjective(new GatherObjective()
-                    .setItem("iron_ingot")
-                    .setCount(10)
-                    .setSource("mining"))
-                .setReward(new ItemReward()
-                    .addItem("horseshoe", 4)
-                    .addCurrency("copper", 20))
-                .setDifficulty("easy")
-                .build();
-                
-        } else if (wealthLevel <= 3) {
-            // Middle-class smith: Crafting commission quests
-            return generator.createQuest()
-                .setId("artisan_smith_commission_" + smith.getId())
-                .setName("Commission: Steel Longsword")
-                .setGiver(smith)
-                .setDescription(smith.getName() + " will craft a weapon if you provide materials.")
-                .addObjective(new GatherObjective()
-                    .setItem("steel_ingot")
-                    .setCount(5))
-                .addObjective(new GatherObjective()
-                    .setItem("leather_strips")
-                    .setCount(2))
-                .setReward(new ItemReward()
-                    .addItem("steel_longsword", 1)
-                    .addCurrency("silver", 50))
-                .setDifficulty("medium")
-                .build();
-                
-        } else {
-            // Wealthy smith: Delivery/escort quests for nobles
-            Location nobleMansion = findNearbyNobleBuilding(smith.getLocation());
-            
-            return generator.createQuest()
-                .setId("noble_smith_delivery_" + smith.getId())
-                .setName("Deliver Ceremonial Blade")
-                .setGiver(smith)
-                .setDescription("Master " + smith.getName() + " has crafted an ornate weapon for nobility.")
-                .addObjective(new DeliveryObjective()
-                    .setItem("ornate_ceremonial_blade")
-                    .setDestination(nobleMansion)
-                    .setRecipient("noble_npc")
-                    .setFragile(true))  // Don't die or fail quest!
-                .addCondition(new ReputationCondition()
-                    .setMinimum(30)
-                    .setReason("Nobles only trust reputable couriers"))
-                .setReward(new CurrencyReward()
-                    .addCurrency("gold", 100)
-                    .addReputation("nobles_faction", 10))
-                .setDifficulty("hard")
-                .build();
-        }
+    
+    private final QuestGenerator generator;
+    
+    public WealthBasedQuestGenerator() {
+        this.generator = new QuestGenerator();
+        registerWealthStrategies();
+        registerQuestTemplates();
     }
     
-    private Location findNearbyNobleBuilding(Location smithLocation) {
-        City city = getCityAt(smithLocation);
-        return city.getBuildings().stream()
-            .filter(b -> b.hasTag("manor") || b.hasTag("estate"))
-            .min(Comparator.comparingDouble(b -> 
-                b.getLocation().distance(smithLocation)))
-            .map(Building::getLocation)
-            .orElse(smithLocation);
+    /**
+     * Register generation strategies for different wealth tiers.
+     * Strategies encapsulate the domain logic for quest configuration.
+     */
+    private void registerWealthStrategies() {
+        // Poor tier (0-1): Resource gathering, basic rewards
+        generator.registerStrategy("poor_smith", (ctx, builder) -> {
+            String npcId = ctx.getString("npc_id");
+            String npcName = ctx.getString("npc_name", "the smith");
+            
+            builder.id("poor_smith_iron_" + npcId)
+                   .title("Iron for the Forge")
+                   .description(npcName + " needs raw materials to continue working.")
+                   .type(QuestDefinition.QuestType.SIDE)
+                   .addStage(stage -> stage
+                       .description("Gather iron ingots")
+                       .addObjective(new QuestObjectiveReference("gather_iron", 10)))
+                   .addReward(createCurrencyReward("copper", 20));
+        });
+        
+        // Middle tier (2-3): Crafting commissions
+        generator.registerStrategy("artisan_smith", (ctx, builder) -> {
+            String npcId = ctx.getString("npc_id");
+            String npcName = ctx.getString("npc_name", "the artisan");
+            
+            builder.id("artisan_commission_" + npcId)
+                   .title("Commission: Fine Weapon")
+                   .description(npcName + " will craft a weapon if you provide materials.")
+                   .type(QuestDefinition.QuestType.SIDE)
+                   .addStage(stage -> stage
+                       .description("Provide crafting materials")
+                       .addObjective(new QuestObjectiveReference("gather_steel", 5))
+                       .addObjective(new QuestObjectiveReference("gather_leather", 2)))
+                   .addReward(createCurrencyReward("silver", 50));
+        });
+        
+        // Wealthy tier (4-5): Delivery/prestige quests
+        generator.registerStrategy("noble_smith", (ctx, builder) -> {
+            String npcId = ctx.getString("npc_id");
+            String npcName = ctx.getString("npc_name", "Master Smith");
+            
+            builder.id("noble_delivery_" + npcId)
+                   .title("Deliver Ceremonial Blade")
+                   .description("Master " + npcName + " has crafted an ornate weapon for nobility.")
+                   .type(QuestDefinition.QuestType.SIDE)
+                   .addStage(stage -> stage
+                       .description("Deliver the blade to the noble estate")
+                       .addObjective(new QuestObjectiveReference("deliver_blade", 1)))
+                   .addReward(createCurrencyReward("gold", 100))
+                   .addReward(createReputationReward("nobles_faction", 10));
+        });
+    }
+    
+    /**
+     * Register reusable quest templates with parameter placeholders.
+     */
+    private void registerQuestTemplates() {
+        generator.registerTemplate("gather_for_npc", template -> template
+            .title("Gather {item_name} for {npc_name}")
+            .description("{npc_name} needs your help collecting {item_name}.")
+            .type(QuestDefinition.QuestType.SIDE)
+            .addStage(stage -> stage
+                .description("Collect the requested items")
+                .addObjective(new QuestObjectiveReference("gather", 1)))
+        );
+        
+        generator.registerTemplate("delivery", template -> template
+            .title("Deliver {item_name} to {recipient}")
+            .description("Transport {item_name} safely to {recipient}.")
+            .type(QuestDefinition.QuestType.SIDE)
+            .addStage(stage -> stage
+                .addObjective(new QuestObjectiveReference("deliver", 1)))
+        );
+    }
+    
+    /**
+     * Generate a quest appropriate for the smith's wealth level.
+     */
+    public QuestDefinition generateSmithQuest(NPC smith, int wealthLevel) {
+        String strategyId = switch (wealthLevel) {
+            case 0, 1 -> "poor_smith";
+            case 2, 3 -> "artisan_smith";
+            default -> "noble_smith";
+        };
+        
+        return generator.generate(strategyId, Map.of(
+            "npc_id", smith.getId(),
+            "npc_name", smith.getName()
+        ));
+    }
+    
+    /**
+     * Generate from template with custom parameters.
+     */
+    public QuestDefinition generateGatherQuest(NPC npc, String itemName, int count) {
+        return generator.fromTemplate("gather_for_npc")
+            .param("npc_name", npc.getName())
+            .param("item_name", itemName)
+            .build();
+    }
+    
+    // Helper methods for reward creation
+    private QuestReward createCurrencyReward(String currency, int amount) {
+        QuestReward reward = new QuestReward();
+        reward.setType(QuestReward.RewardType.CURRENCY);
+        reward.setId(currency);
+        reward.setAmount(amount);
+        return reward;
+    }
+    
+    private QuestReward createReputationReward(String faction, int amount) {
+        QuestReward reward = new QuestReward();
+        reward.setType(QuestReward.RewardType.REPUTATION);
+        reward.setId(faction);
+        reward.setAmount(amount);
+        return reward;
     }
 }
 ```
