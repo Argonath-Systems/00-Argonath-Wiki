@@ -14,8 +14,9 @@ A comprehensive guide to developing user interfaces with the Argonath Framework 
 8. [Quest Tracker Example](#quest-tracker-example)
 9. [Custom Components](#custom-components)
 10. [Best Practices](#best-practices)
-11. [Performance Optimization](#performance-optimization)
-12. [Troubleshooting](#troubleshooting)
+11. [UI Hot Reload (Development Mode)](#ui-hot-reload-development-mode)
+12. [Performance Optimization](#performance-optimization)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -1229,6 +1230,173 @@ public class CircularLayout implements LayoutManager {
 - ❌ Hard-code sizes and positions
 - ❌ Forget accessibility features
 - ❌ Overcomplicate UI hierarchy
+
+---
+
+## UI Hot Reload (Development Mode)
+
+The UI Hot Reload system allows you to edit HYUIML template files and see changes instantly without restarting the server. This dramatically speeds up UI development iteration.
+
+### Prerequisites
+
+- Development environment (not production)
+- HYUIML template files in `config/ui/` directory
+- `UnifiedUIManager` initialized
+
+### Enabling Hot Reload
+
+```java
+import com.argonathsystems.framework.ui.UnifiedUIManager;
+import com.argonathsystems.framework.ui.dev.DevModeConfig;
+
+public class ModInitializer {
+    public void onEnable() {
+        // Check if we're in development mode
+        String env = System.getenv("ARGONATH_ENV");
+        if (!"production".equals(env)) {
+            // Enable hot reload
+            DevModeConfig devConfig = DevModeConfig.builder()
+                .enabled(true)
+                .hotReloadEnabled(true)
+                .uiDirectory(Path.of("config/ui"))
+                .pollIntervalMs(500)
+                .autoRefreshPlayers(true)
+                .logChanges(true)
+                .build();
+            
+            UnifiedUIManager.getInstance().initDevMode(devConfig);
+        }
+    }
+}
+```
+
+### Creating HYUIML Templates
+
+Place your HYUIML files in the `config/ui/` directory structure:
+
+```
+config/
+└── ui/
+    ├── pages/           # Full-screen UI pages
+    │   ├── quest-book.hyuiml
+    │   └── character-select.hyuiml
+    ├── huds/            # HUD overlays
+    │   ├── quest-tracker.hyuiml
+    │   └── minimap.hyuiml
+    └── components/      # Reusable components
+        ├── button-styles.hyuiml
+        └── common-layouts.hyuiml
+```
+
+### Using Hot-Reloadable UI Suppliers
+
+Instead of embedding HTML strings in code, use the `createUISupplier` method:
+
+```java
+import java.util.function.Supplier;
+
+public class MyHUD {
+    private final Supplier<String> htmlSupplier;
+    
+    public MyHUD() {
+        // Create a supplier that auto-reloads in dev mode
+        this.htmlSupplier = UnifiedUIManager.getInstance()
+            .createUISupplier("quest-tracker", "config/ui/huds/quest-tracker.hyuiml");
+    }
+    
+    public void showHUD(PlayerRef player, UIStore store) {
+        // In dev mode, this gets fresh content on each call
+        String html = htmlSupplier.get();
+        
+        HudBuilder.forPlayer(player)
+            .fromHtml(html)
+            .addEventListener("btn-settings", CustomUIEventBindingType.Activating, ctx -> {
+                // Handle button click
+            })
+            .build(store);
+    }
+}
+```
+
+### Listening for Reload Events
+
+Register listeners to refresh UIs when files change:
+
+```java
+UnifiedUIManager.getInstance().getHotReloadService().ifPresent(service -> {
+    service.onReload(pageId -> {
+        if ("quest-tracker".equals(pageId)) {
+            System.out.println("Quest tracker template changed!");
+            refreshAllPlayerHUDs();
+        }
+    });
+});
+```
+
+### In-Game Reload Commands
+
+Use the `/uireload` command during development:
+
+```
+/uireload quest-tracker    # Reload a specific file
+/uireload all              # Reload all UI files
+/uireload list             # List registered page IDs
+```
+
+> **Permission Required**: `argonath.admin.uireload`
+
+### HYUIML Template Variables
+
+Inject dynamic data into templates using the template processor:
+
+```html
+<!-- quest-tracker.hyuiml -->
+<div class="hud-quest-tracker">
+    <p class="title">Tracked: {{$trackedCount}}/{{$maxTracked}}</p>
+    
+    {{#each trackedQuests}}
+    <div class="quest-entry" data-quest-id="{{$id}}">
+        <p class="quest-name">{{$name}}</p>
+    </div>
+    {{/each}}
+</div>
+```
+
+Process the template in Java:
+
+```java
+public String processTemplate(String template, List<TrackedQuest> quests) {
+    template = template.replace("{{$trackedCount}}", String.valueOf(quests.size()));
+    template = template.replace("{{$maxTracked}}", "5");
+    
+    // Replace {{#each}}...{{/each}} with generated HTML
+    String questHtml = quests.stream()
+        .map(this::generateQuestHtml)
+        .collect(Collectors.joining());
+    template = replaceSection(template, "{{#each trackedQuests}}", "{{/each}}", questHtml);
+    
+    return template;
+}
+```
+
+### Production vs Development
+
+| Feature | Development | Production |
+|---------|-------------|------------|
+| Template Source | Disk (watched) | Classpath (cached) |
+| Reload Support | Yes | No |
+| File Watching | Active | Disabled |
+| Performance | Optimized for iteration | Optimized for speed |
+
+In production, templates are loaded once from the classpath and cached. Hot reload is automatically disabled when `ARGONATH_ENV=production`.
+
+### Sample HYUIML Files
+
+See the [00-Argonath-Samples/ui/](../../samples/ui/) directory for complete examples:
+
+- `quest-tracker.hyuiml` - Quest tracking HUD
+- `character-selection.hyuiml` - Character creation wizard
+- `dual-hotbar.hyuiml` - Action bar with abilities
 
 ---
 
