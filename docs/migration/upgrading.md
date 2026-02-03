@@ -456,7 +456,7 @@ Version 2.x is a **major upgrade** with significant architectural improvements a
 
 **Prerequisites**:
 - [ ] Currently on version 1.2.x or higher (must upgrade to 1.2.x first)
-- [ ] Java 21 or higher (2.x requires Java 21+)
+- [ ] Java 25 or higher (2.x requires Java 25+)
 - [ ] PostgreSQL 14+ or MySQL 8+ (older versions not supported)
 - [ ] Complete backup of all data
 - [ ] Test environment that mirrors production

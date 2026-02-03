@@ -225,7 +225,7 @@ Version 2.0 introduces architectural improvements, performance enhancements, and
 | NPC Framework | Structure change | Medium | Medium |
 | Storage API | Type safety added | Medium | Low |
 | Event System | Event sourcing | Medium | Low |
-| Minimum Requirements | Java 21, newer DB | High | Low |
+| Minimum Requirements | Java 25, newer DB | High | Low |
 
 ### 1. Quest State Machine Refactored
 
@@ -585,7 +585,7 @@ QuestState stateAt = eventStore.replayUntil(
 - Minecraft 1.18+
 
 **2.0 Requirements**:
-- **Java 21+** (Required - uses newer language features)
+- **Java 25+** (Required - uses newer language features and preview features)
 - **MySQL 8.0+ or PostgreSQL 14+** (Required - uses newer SQL features)
 - Minecraft 1.19+ (Recommended 1.20+)
 
@@ -594,7 +594,7 @@ QuestState stateAt = eventStore.replayUntil(
 ```bash
 # Update Java version
 sudo apt update
-sudo apt install openjdk-21-jdk
+sudo apt install openjdk-25-jdk
 
 # Verify
 java -version
